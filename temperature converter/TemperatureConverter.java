@@ -1,0 +1,145 @@
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+
+//--- imports for writing to file ---
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class TemperatureConverter extends Application {
+
+    private TextField celsiusTextField;
+    private TextField fahrenheitTextField;
+    private RadioButton celsiusRadioBtn;
+    private RadioButton fahrenheitRadioBtn;
+    private CheckBox saveToFileCheckBox;
+
+
+    public void start(Stage primaryStage) {
+  
+        //--- icon import ---
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/css/icon.png")));
+  
+    
+        //--- title of an application ---
+        primaryStage.setTitle("Temperature Converter");
+          
+        // --- Create UI ---
+        Label celsiusLabel = new Label("Celsius:");
+        Label fahrenheitLabel = new Label("Fahrenheit:");
+
+        celsiusTextField = new TextField();
+        fahrenheitTextField = new TextField();
+
+        Button convertButton = new Button("Convert");
+
+        celsiusRadioBtn = new RadioButton("Celsius to Fahrenheit");
+        fahrenheitRadioBtn = new RadioButton("Fahrenheit to Celsius");
+
+        saveToFileCheckBox = new CheckBox("Save to File");
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        celsiusRadioBtn.setToggleGroup(toggleGroup);
+        fahrenheitRadioBtn.setToggleGroup(toggleGroup);
+        celsiusRadioBtn.setSelected(true); //by default the celsius will be checked
+    
+    
+
+        //--- event handler ---
+        convertButton.setOnAction(e -> convertTemperature());
+    
+        //--- implementing an image ---
+        Image logo = new Image(getClass().getResourceAsStream("/css/icon.png"));
+        ImageView logoImageView = new ImageView(logo);
+        logoImageView.setFitWidth(80); 
+        logoImageView.setFitHeight(80);
+        
+        StackPane imagePane = new StackPane(logoImageView);
+        imagePane.getStyleClass().add("image-pane");
+    
+        StackPane logoContainer = new StackPane(imagePane);
+        logoContainer.getStyleClass().add("logo-container");
+
+      
+
+        //--- layout and add UI ---
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(30));
+        vbox.setAlignment(Pos.CENTER);
+
+        vbox.getChildren().addAll(logoContainer,celsiusLabel, celsiusTextField, fahrenheitLabel, fahrenheitTextField,
+                celsiusRadioBtn, fahrenheitRadioBtn, saveToFileCheckBox, convertButton);
+    
+
+        //--- creating a scene ---
+        Scene scene = new Scene(vbox, 500, 425);
+    
+        //--- css import ---
+        scene.getStylesheets().add(getClass().getResource("/css/temperature_converter.css").toExternalForm());
+        
+
+        //--- showing the scene ---
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+  
+  
+  
+  
+  
+    //--- method for converting ---
+    public void convertTemperature() {
+        try {
+            if (celsiusRadioBtn.isSelected()) {
+                double celsius = Double.parseDouble(celsiusTextField.getText());
+                double fahrenheit = (celsius * 9 / 5) + 32;
+                fahrenheitTextField.setText(String.format("%.2f", fahrenheit));
+
+                if (saveToFileCheckBox.isSelected()) {
+                    saveResultToFile("Celsius to Fahrenheit: " + celsius + "°C -> " + fahrenheit + "°F");
+                }
+            } else {
+                double fahrenheit = Double.parseDouble(fahrenheitTextField.getText());
+                double celsius = (fahrenheit - 32) * 5 / 9;
+                celsiusTextField.setText(String.format("%.2f", celsius));
+
+                if (saveToFileCheckBox.isSelected()) {
+                    saveResultToFile("Fahrenheit to Celsius: " + fahrenheit + "°F -> " + celsius + "°C");
+                }
+            }
+        } catch (Exception e) {
+            celsiusTextField.setText("Invalid input");
+            fahrenheitTextField.setText("Invalid input");
+        }
+    }
+  
+  
+  
+    //--- method for saving the result to the file ---
+    public void saveResultToFile(String result) {
+        String fileName = "temperature_conversion.txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
+            LocalDateTime now = LocalDateTime.now();
+            String timestamp = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            writer.write("[" + timestamp + "] " + result);
+            writer.newLine();
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving the result to the file: " + e.getMessage());
+        }
+    }
+}
+
+
+     
+       
